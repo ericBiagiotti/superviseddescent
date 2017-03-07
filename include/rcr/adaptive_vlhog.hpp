@@ -130,8 +130,8 @@ public:
 
 		int numLandmarks = parameters.cols / 2;
 		for (int i = 0; i < numLandmarks; ++i) {
-                        int x = qRound(parameters.at<float>(i));
-                        int y = qRound(parameters.at<float>(i + numLandmarks));
+                        int x = round(parameters.at<float>(i));
+                        int y = round(parameters.at<float>(i + numLandmarks));
 
 			Mat roiImg;
 			if (x - patch_width_half < 0 || y - patch_width_half < 0 || x + patch_width_half >= grayImage.cols || y + patch_width_half >= grayImage.rows) {
@@ -186,6 +186,10 @@ public:
 	};
 
 private:
+        int round(float x) {
+            return (int)((x >= 0.0) ? floor(x+0.5) : ceil(x-0.5));
+        }
+
 	const std::vector<cv::Mat>& images; // We store a reference so that each thread that gets spawned doesn't create a copy of this vector. An alternative might be to rethink the design and not store all images here.
 	std::vector<HoGParam> hog_params;
 
