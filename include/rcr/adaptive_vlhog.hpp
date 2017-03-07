@@ -35,6 +35,7 @@ extern "C" {
 
 #include <vector>
 #include <string>
+#include <QtGlobal>
 
 namespace rcr {
 
@@ -129,8 +130,8 @@ public:
 
 		int numLandmarks = parameters.cols / 2;
 		for (int i = 0; i < numLandmarks; ++i) {
-			int x = cvRound(parameters.at<float>(i));
-			int y = cvRound(parameters.at<float>(i + numLandmarks));
+                        int x = qRound(parameters.at<float>(i));
+                        int y = qRound(parameters.at<float>(i + numLandmarks));
 
 			Mat roiImg;
 			if (x - patch_width_half < 0 || y - patch_width_half < 0 || x + patch_width_half >= grayImage.cols || y + patch_width_half >= grayImage.rows) {
