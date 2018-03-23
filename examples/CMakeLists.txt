@@ -2,7 +2,7 @@ project(examples)
 cmake_minimum_required(VERSION 2.8.7)
 
 # The examples need a few additional dependencies (e.g. boost filesystem and OpenCV highgui):
-find_package(OpenCV 2.4.3 REQUIRED core imgproc highgui objdetect)
+find_package(OpenCV 3.1.0 REQUIRED core imgproc highgui objdetect)
 message(STATUS "OpenCV include dir found at ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "OpenCV lib dir found at ${OpenCV_LIB_DIR}")
 

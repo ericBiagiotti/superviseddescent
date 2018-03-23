@@ -72,7 +72,7 @@ std::pair<vector<Mat>, vector<rcr::LandmarkCollection<Vec2f>>> load_ibug_data(fs
 	fs::directory_iterator end_itr;
 	for (fs::directory_iterator i(directory); i != end_itr; ++i)
 	{
-		if (fs::is_regular_file(i->status()) && i->path().extension() == ".png")
+		if (fs::is_regular_file(i->status()) && i->path().extension() == ".jpg")
 			image_filenames.emplace_back(i->path());
 	}
 
@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
 	std::for_each(begin(loaded_landmarks), end(loaded_landmarks), [&model_landmarks](rcr::LandmarkCollection<Vec2f>& lm) { lm = rcr::filter(lm, model_landmarks); });
 	// Reduce the mean:
 	vector<string> ibug_landmark_ids; // full 68 point list
-	for (int ibug_id = 1; ibug_id <= 68; ++ibug_id) {
+	for (int ibug_id = 1; ibug_id <= 194; ++ibug_id) {
 		ibug_landmark_ids.emplace_back(std::to_string(ibug_id));
 	}
 	model_mean = rcr::to_row(rcr::filter(rcr::to_landmark_collection(model_mean, ibug_landmark_ids), model_landmarks));
@@ -385,16 +385,16 @@ int main(int argc, char *argv[])
 	Mat x_gt, x_0;
 	// Augment the training set by perturbing the initialisations:
 	auto perturb_t_mu = 0.0f; // in percent of IED or the face box? only needed in tracking?
-	auto perturb_t_sigma = 0.04f; // in percent of the face box
+	auto perturb_t_sigma = 0.08f; // in percent of the face box
 	auto perturb_s_mu = 1.0f;
-	auto perturb_s_sigma = 0.04f;
+	auto perturb_s_sigma = 0.05f;
 	// If we initialise from the mean, I thought only t_sigma makes sense and t_mu should be zero. But I think ZF/SDM use also t_mu.
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::normal_distribution<> dist_t(perturb_t_mu, perturb_t_sigma); // Todo: If perturb_t_mu != 0, then we want plus and minus the value! handle this somehow.
 	std::normal_distribution<> dist_s(perturb_s_mu, perturb_s_sigma);
 	// Each image, we add the original and perturb the face box num_perturbations times.
-	auto num_perturbations = 10; // = 10 perturbs + orig = 11 total
+	auto num_perturbations = 13; // = 10 perturbs + orig = 11 total
 	{
 		// Load the face detector from OpenCV:
 		cv::CascadeClassifier face_cascade;
@@ -406,6 +406,8 @@ int main(int argc, char *argv[])
 	
 		// Run the face detector and obtain the initial estimate x_0 using the mean landmarks:
 		for (size_t i = 0; i < loaded_images.size(); ++i) {
+			cout << "Running face detector estimate for: " << i << endl;
+			cout << "Num training images: " << training_images.size() << endl;
 			vector<cv::Rect> detected_faces;
 			face_cascade.detectMultiScale(loaded_images[i], detected_faces, 1.2, 2, 0, cv::Size(50, 50));
 			// Verify that the detected face is not a false positive:
@@ -437,14 +439,22 @@ int main(int argc, char *argv[])
 
 	// Create 3 regularised linear regressors in series:
 	vector<LinearRegressor<VerbosePartialPivLUSolver>> regressors;
-	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 1.5f, false)));
-	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 1.5f, false)));
-	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 1.5f, false)));
-	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 1.5f, false)));
+	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 5.0f, false)));
+	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 5.0f, false)));
+	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 5.0f, false)));
+	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 5.0f, false)));
+	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 5.0f, false)));
+	regressors.emplace_back(LinearRegressor<VerbosePartialPivLUSolver>(Regulariser(Regulariser::RegularisationType::MatrixNorm, 5.0f, false)));
 	
 	SupervisedDescentOptimiser<LinearRegressor<VerbosePartialPivLUSolver>, rcr::InterEyeDistanceNormalisation> supervised_descent_model(regressors, rcr::InterEyeDistanceNormalisation(model_landmarks, right_eye_identifiers, left_eye_identifiers));
 	
-	std::vector<rcr::HoGParam> hog_params{ { VlHogVariant::VlHogVariantUoctti, 5, 11, 4, 1.0f },{ VlHogVariant::VlHogVariantUoctti, 5, 10, 4, 0.7f },{ VlHogVariant::VlHogVariantUoctti, 5, 8, 4, 0.4f },{ VlHogVariant::VlHogVariantUoctti, 5, 6, 4, 0.25f } }; // 3 /*numCells*/, 12 /*cellSize*/, 4 /*numBins*/
+	std::vector<rcr::HoGParam> hog_params{ 
+		{ VlHogVariant::VlHogVariantUoctti, 5, 11, 4, 1.5f },
+		{ VlHogVariant::VlHogVariantUoctti, 5, 11, 4, 1.1f },
+		{ VlHogVariant::VlHogVariantUoctti, 5, 10, 4, 0.7f },
+		{ VlHogVariant::VlHogVariantUoctti, 5, 8, 4, 0.4f },
+		{ VlHogVariant::VlHogVariantUoctti, 5, 6, 4, 0.25f },
+		{ VlHogVariant::VlHogVariantUoctti, 5, 6, 4, 0.2f } }; // 3 /*numCells*/, 12 /*cellSize*/, 4 /*numBins*/
 	assert(hog_params.size() == regressors.size());
 	rcr::HogTransform hog(training_images, hog_params, model_landmarks, right_eye_identifiers, left_eye_identifiers);
 

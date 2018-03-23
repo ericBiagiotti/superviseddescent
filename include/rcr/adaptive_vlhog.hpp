@@ -35,7 +35,6 @@ extern "C" {
 
 #include <vector>
 #include <string>
-#include <QtGlobal>
 
 namespace rcr {
 

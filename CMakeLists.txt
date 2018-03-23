@@ -33,7 +33,7 @@ set(CPACK_PACKAGE_VERSION_PATCH "${superviseddescent_VERSION_PATCH}")
 include(CPack)
 
 # Find dependencies:
-find_package(OpenCV 2.4.3 REQUIRED core)
+find_package(OpenCV 3.1.0 REQUIRED core)
 message(STATUS "OpenCV include dir found at ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "OpenCV lib dir found at ${OpenCV_LIB_DIR}")
 

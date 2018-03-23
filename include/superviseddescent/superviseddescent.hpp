@@ -281,7 +281,13 @@ public:
 			// Gather the results from all threads and store the features:
 			Mat features;
 			for (auto&& result : results) {
-				features.push_back(result.get());
+				try {
+					features.push_back(result.get());
+				}
+				catch (std::exception e) {
+                                        std::cout << e.what() << std::endl;
+					continue;
+				}
 			}
 
 			Mat observed_values;
