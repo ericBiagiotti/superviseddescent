@@ -85,7 +85,7 @@ inline void draw_landmarks(cv::Mat image, cv::Mat landmarks, cv::Scalar color = 
 {
 	auto num_landmarks = std::max(landmarks.cols, landmarks.rows) / 2;
 	for (int i = 0; i < num_landmarks; ++i) {
-		cv::circle(image, cv::Point2f(landmarks.at<float>(i), landmarks.at<float>(i + num_landmarks)), 2, color);
+		cv::circle(image, cv::Point2f(landmarks.at<float>(i), landmarks.at<float>(i + num_landmarks)), 5, color, 5);
 	}
 }
 

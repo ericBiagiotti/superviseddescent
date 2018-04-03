@@ -285,7 +285,7 @@ public:
 					features.push_back(result.get());
 				}
 				catch (std::exception e) {
-                                        std::cout << e.what() << std::endl;
+                    std::cout << e.what() << std::endl;
 					continue;
 				}
 			}
