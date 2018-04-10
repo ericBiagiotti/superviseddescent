@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 
 	// Run the face detector:
 	vector<cv::Rect> detected_faces;
-	face_cascade.detectMultiScale(image, detected_faces, 1.2, 2, 0, cv::Size(50, 50));
+	face_cascade.detectMultiScale(image, detected_faces, 1.05, 2, 0, cv::Size(50, 50));
 	if (detected_faces.empty())	{
 		cout << "No face detected. Exiting." << endl;
 		return EXIT_SUCCESS;
@@ -115,6 +115,8 @@ int main(int argc, char *argv[])
 	
 	// Detect the landmarks:
 	auto landmarks = rcr_model.detect(image, detected_faces[0]);
+	for (auto l : landmarks)
+		cout << l.name << std::endl;
 
 	rcr::draw_landmarks(image, landmarks);
 	cv::imwrite(outputfile.string(), image);

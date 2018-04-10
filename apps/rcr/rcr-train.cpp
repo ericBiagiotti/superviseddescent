@@ -409,13 +409,36 @@ int main(int argc, char *argv[])
 			cout << "Running face detector estimate for: " << i << endl;
 			cout << "Num training images: " << training_images.size() << endl;
 			vector<cv::Rect> detected_faces;
-			face_cascade.detectMultiScale(loaded_images[i], detected_faces, 1.2, 2, 0, cv::Size(50, 50));
-			// Verify that the detected face is not a false positive:
-			bool is_true_positive = rcr::check_face(detected_faces, loaded_landmarks[i]); // reduced landmarks. Meaning the check will vary.
-			if (is_true_positive) {
+			face_cascade.detectMultiScale(loaded_images[i], detected_faces, 1.05, 2, 0, cv::Size(200, 200));
+
+			// Save image with the facebox and landmarks
+			//auto l = loaded_landmarks[i];
+			//auto img = loaded_images[i].clone();
+
+			// Find the largest facebox
+			//std::string empty = "empty";
+			cv::Rect detectedFace;
+			for (size_t j = 0; j < detected_faces.size(); j++) {
+				if(rcr::check_face(detected_faces[j], loaded_landmarks[i])) {
+					detectedFace = detected_faces[j];
+				}
+				//cv::rectangle(img, detected_faces[j], cv::Scalar(0.0, 0.0, 255.0), 3);
+			}
+			/*for (size_t j = 0; j < l.size(); j++) {
+				cv::circle(img, cv::Point(l[j].coordinates[0], l[j].coordinates[1]), 3, cv::Scalar(0.0, 0.0, 255.0), 3);
+			}
+
+			if (detectedFace.area() != 0) {
+				empty = "";
+			}
+			auto path = (trainingset/"faceDetection"/(empty + std::to_string(i) +  ".jpg")).string();
+			cout << path;
+			cv::imwrite(path, img);*/
+
+			if (detectedFace.area() != 0) {
 				// The initialisation values:
 				// alignMean actually just transforms from [0.5...]-space to inside the facebox in img-coords.
-				x_0.push_back(rcr::align_mean(model_mean, cv::Rect(detected_faces[0])));
+				x_0.push_back(rcr::align_mean(model_mean, cv::Rect(detectedFace)));
 				// Also copy the ground truth landmarks to one big data matrix:
 				x_gt.push_back(rcr::to_row(loaded_landmarks[i]));
 				// And the images:
@@ -423,8 +446,8 @@ int main(int argc, char *argv[])
 				for (auto p = 0; p < num_perturbations; ++p) {
 					// Same again but create perturbations:
 					Mat tmp = loaded_images[i].clone();
-					cv::rectangle(tmp, detected_faces[0], { 0.0f, 0.0f, 255.0f });
-					cv::Rect tmp_pert = perturb(cv::Rect(detected_faces[0]), dist_t(gen), dist_t(gen), dist_s(gen));
+					cv::rectangle(tmp, detectedFace, { 0.0f, 0.0f, 255.0f });
+					cv::Rect tmp_pert = perturb(cv::Rect(detectedFace), dist_t(gen), dist_t(gen), dist_s(gen));
 					// Note: FBox could be (partly) outside of image, but we check later during feature extraction, right?
 					cv::rectangle(tmp, tmp_pert, { 255.0f, 0.0f, 0.0f });
 					x_0.push_back(rcr::align_mean(model_mean, tmp_pert)); // tx, ty, s
@@ -509,12 +532,19 @@ int main(int argc, char *argv[])
 		// Run the face detector and obtain the initial estimate x_0 using the mean landmarks:
 		for (size_t i = 0; i < loaded_test_images.size(); ++i) {
 			vector<cv::Rect> detected_faces;
-			face_cascade.detectMultiScale(loaded_test_images[i], detected_faces, 1.2, 2, 0, cv::Size(50, 50));
-			// Verify that the detected face is not a false positive:
-			bool is_true_positive = rcr::check_face(detected_faces, loaded_test_landmarks[i]);
-			if (is_true_positive) {
+			face_cascade.detectMultiScale(loaded_test_images[i], detected_faces, 1.05, 2, 0, cv::Size(200, 200));
+
+			cv::Rect detectedFace;
+			for (size_t j = 0; j < detected_faces.size(); j++) {
+				if(rcr::check_face(detected_faces[j], loaded_landmarks[i])) {
+					detectedFace = detected_faces[j];
+				}
+			}
+
+			// Verify that the detected face is not a false positive:;
+			if (detectedFace.area() != 0) {
 				// The initialisation values:
-				x_ts_0.push_back(rcr::align_mean(model_mean, cv::Rect(detected_faces[0])));
+				x_ts_0.push_back(rcr::align_mean(model_mean, cv::Rect(detectedFace)));
 				// Also copy the ground truth landmarks to one big data matrix:
 				x_ts_gt.push_back(rcr::to_row(loaded_test_landmarks[i]));
 				// And the images:

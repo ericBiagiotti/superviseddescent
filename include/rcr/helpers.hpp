@@ -118,8 +118,35 @@ inline bool check_face(std::vector<cv::Rect> detected_faces, LandmarkCollection<
 	// for now: user should make sure we have 37, 46, 58.
 	
 	for (const auto& lm : groundtruth_landmarks) {
-		if (lm.name == "37" || lm.name == "46" || lm.name == "58") {
+		if (lm.name == "145" || lm.name == "125" || lm.name == "50") {
 			if (!detected_faces[0].contains(cv::Point(lm.coordinates))) {
+				is_true_positive = false;
+				break; // if any LM is not inside, skip this training image
+				// Note: improvement: if the first face-box doesn't work, try the other ones
+			}
+		}
+	}
+
+	return is_true_positive;
+}
+
+inline bool check_face(cv::Rect detected_face, LandmarkCollection<cv::Vec2f> groundtruth_landmarks)
+{
+	// If no face is detected, return immediately:
+	if (detected_face.area() == 0) {
+		return false;
+	}
+
+	bool is_true_positive = true;
+	// TODO: Need to make the following better!
+	// for now, if the ground-truth landmarks 37 (reye_oc), 46 (leye_oc) and 58 (mouth_ll_c) are inside the face-box
+	// (should add: _and_ the face-box is not bigger than IED*2 or something)
+	//assert(groundtruthLandmarks.size() == 68); // only works with ibug-68 so far...
+	// for now: user should make sure we have 37, 46, 58.
+	
+	for (const auto& lm : groundtruth_landmarks) {
+		if (lm.name == "145" || lm.name == "125" || lm.name == "50") {
+			if (!detected_face.contains(cv::Point(lm.coordinates))) {
 				is_true_positive = false;
 				break; // if any LM is not inside, skip this training image
 				// Note: improvement: if the first face-box doesn't work, try the other ones

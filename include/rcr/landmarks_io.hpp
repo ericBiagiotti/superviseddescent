@@ -26,7 +26,7 @@
 
 #include "opencv2/core/core.hpp"
 
-//#include "boost/algorithm/string.hpp"
+#include "boost/algorithm/string.hpp"
 
 #include <string>
 #include <fstream>
@@ -46,7 +46,7 @@ LandmarkCollection<cv::Vec2f> read_pts_landmarks(std::string filename)
 	using cv::Vec2f;
 	using std::string;
 	LandmarkCollection<Vec2f> landmarks;
-	landmarks.reserve(68);
+	landmarks.reserve(194);
 
 	std::ifstream file(filename);
 	if (!file.is_open()) {
@@ -62,15 +62,15 @@ LandmarkCollection<cv::Vec2f> read_pts_landmarks(std::string filename)
 	int ibugId = 1;
 	while (getline(file, line))
 	{
+		boost::trim(line);
 		if (line == "}") { // end of the file
 			break;
 		}
 		std::stringstream lineStream(line);
-
 		Landmark<Vec2f> landmark;
 		landmark.name = std::to_string(ibugId);
 		if (!(lineStream >> landmark.coordinates[0] >> landmark.coordinates[1])) {
-			throw std::runtime_error(string("Landmark format error while parsing the line: " + line));
+			throw std::runtime_error(string("Landmark format error while parsing the line: " + line + "," + std::to_string(ibugId) + "," + filename));
 		}
 		// From the iBug website:
 		// "Please note that the re-annotated data for this challenge are saved in the Matlab convention of 1 being 
